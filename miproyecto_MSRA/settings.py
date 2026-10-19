@@ -160,5 +160,8 @@ STORAGES = {
     },
 # cierre del diccionario STORAGES
 }
-# Redirige al login del administrador cuando se necesita iniciar sesión
-LOGIN_URL = '/admin/login/'
+# Página a la que se envía a los usuarios sin sesión
+LOGIN_URL = 'login'
+
+# Página a la que se envía después de iniciar sesión
+LOGIN_REDIRECT_URL = 'servicios'

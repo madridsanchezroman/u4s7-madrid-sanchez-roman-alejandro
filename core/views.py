@@ -2,19 +2,16 @@
 # render: combina una plantilla con datos
 # redirect: redirige a otra pagina
 # get_object_or_404: busca un registro o muestra error 404
+
 from django.shortcuts import render, redirect, get_object_or_404
-
-# connection: permite consultar la configuracion de la base de datos
 from django.db import connection
-
-# login_required: exige iniciar sesion
 from django.contrib.auth.decorators import login_required
-
-# Servicio: modelo de la base de datos
+from django.contrib.auth import login, logout
+from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
+from django.contrib import messages
 from .models import Servicio
-
-# ServicioForm: formulario creado en forms.py
 from .forms import ServicioForm
+
 
 
 # Vista de inicio de la Semana 3
@@ -32,47 +29,51 @@ def inicio(request):
     return render(request, 'core/inicio.html', contexto)
 
 
-# Vista que muestra todos los servicios
+# Mostrar solamente los servicios del usuario actual
+@login_required
 def servicios(request):
-    # Obtiene los servicios guardados en MySQL
-    lista_servicios = Servicio.objects.all()
 
-    # Envia los servicios a la plantilla
-    return render(request, 'core/servicios.html', {
-        'servicios': lista_servicios
-    })
+    # Filtrar los servicios por el usuario que inició sesión
+    lista_servicios = Servicio.objects.filter(
+        propietario=request.user
+    )
+
+    # Mostrar los servicios del usuario
+    return render(
+        request,
+        'core/servicios.html',
+        {'servicios': lista_servicios}
+    )
 
 
-# Exige que el usuario inicie sesion
+# Exige iniciar sesión para crear servicios
 @login_required
 def crear_servicio(request):
 
-    # Comprueba si se envio el formulario
+    # Comprueba si el usuario envió el formulario
     if request.method == 'POST':
-
-        # Recibe los datos escritos
         form = ServicioForm(request.POST)
 
-        # Comprueba que los datos sean correctos
+        # Valida los datos del formulario
         if form.is_valid():
 
-            # Crea el servicio sin guardarlo todavia
-            nuevo = form.save(commit=False)
+            # Crea el servicio sin guardarlo todavía
+            servicio = form.save(commit=False)
 
-            # Asigna el usuario que inicio sesion
-            nuevo.propietario = request.user
+            # Asigna el usuario que inició sesión
+            servicio.propietario = request.user
 
-            # Guarda el servicio en la base de datos
-            nuevo.save()
+            # Guarda el servicio en MySQL
+            servicio.save()
 
-            # Regresa al listado de servicios
+            # Regresa al listado
             return redirect('servicios')
 
     else:
-        # Crea un formulario vacio
+        # Muestra el formulario vacío
         form = ServicioForm()
 
-    # Muestra el formulario
+    # Muestra la página de creación
     return render(request, 'core/servicio_form.html', {
         'form': form,
         'titulo_pagina': 'Nuevo servicio'
@@ -84,9 +85,7 @@ def crear_servicio(request):
 def editar_servicio(request, pk):
 
     # Busca el servicio por su ID
-    # Si no existe, muestra error 404
-    servicio = get_object_or_404(Servicio, pk=pk)
-
+    servicio = get_object_or_404(Servicio, pk=pk, propietario=request.user)
     # Comprueba si el usuario envio cambios
     if request.method == 'POST':
 
@@ -118,8 +117,7 @@ def editar_servicio(request, pk):
 def eliminar_servicio(request, pk):
 
     # Busca el servicio por su ID
-    # Si no existe, muestra error 404
-    servicio = get_object_or_404(Servicio, pk=pk)
+    servicio = get_object_or_404(Servicio, pk=pk, propietario=request.user)
 
     # Solo elimina cuando el usuario confirma
     if request.method == 'POST':
@@ -134,3 +132,78 @@ def eliminar_servicio(request, pk):
     return render(request, 'core/servicio_confirm_delete.html', {
         'servicio': servicio
     })
+
+
+# Vista para registrar nuevos usuarios
+def registro(request):
+    # Si el usuario envió el formulario
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+
+        # Validar los datos
+        if form.is_valid():
+            # Guardar el nuevo usuario
+            usuario_nuevo = form.save()
+
+            # Iniciar sesión automáticamente
+            login(request, usuario_nuevo)
+
+            # Mostrar mensaje de bienvenida
+            messages.success(
+                request,
+                f'Cuenta creada. ¡Bienvenido, {usuario_nuevo.username}!'
+            )
+
+            # Redirigir al listado de servicios
+            return redirect('servicios')
+    else:
+        # Mostrar formulario vacío
+        form = UserCreationForm()
+
+    # Mostrar la página de registro
+    return render(request, 'core/registro.html', {'form': form})
+
+
+# Vista para iniciar sesión
+def iniciar_sesion(request):
+    # Si el usuario envió el formulario
+    if request.method == 'POST':
+        form = AuthenticationForm(request, data=request.POST)
+
+        # Validar usuario y contraseña
+        if form.is_valid():
+            # Iniciar sesión
+            login(request, form.get_user())
+
+            # Mostrar mensaje de éxito
+            messages.success(
+                request,
+                'Sesión iniciada correctamente.'
+            )
+
+            # Redirigir al listado de servicios
+            return redirect('servicios')
+    else:
+        # Mostrar formulario vacío
+        form = AuthenticationForm()
+
+    # Mostrar la página de inicio de sesión
+    return render(request, 'core/login.html', {'form': form})
+
+
+# Vista para cerrar sesión
+def cerrar_sesion(request):
+    # Cerrar la sesión del usuario
+    logout(request)
+
+    # Mostrar mensaje de confirmación
+    messages.info(
+        request,
+        'Sesión cerrada correctamente.'
+    )
+
+    # Redirigir a la página de login
+    return redirect('login')
+
+
+
