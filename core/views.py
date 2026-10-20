@@ -9,6 +9,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login, logout
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib import messages
+from django.core.paginator import Paginator
 from .models import Servicio
 from .forms import ServicioForm
 
@@ -30,20 +31,36 @@ def inicio(request):
 
 
 # Mostrar solamente los servicios del usuario actual
+
 @login_required
 def servicios(request):
-
-    # Filtrar los servicios por el usuario que inició sesión
+    # Mostrar solo los servicios del usuario actual
     lista_servicios = Servicio.objects.filter(
         propietario=request.user
-    )
+    ).order_by('-creado_en', '-id')
 
-    # Mostrar los servicios del usuario
-    return render(
-        request,
-        'core/servicios.html',
-        {'servicios': lista_servicios}
-    )
+    # Obtener el texto del buscador
+    query = request.GET.get('q', '').strip()
+
+    # Filtrar servicios por título
+    if query:
+        lista_servicios = lista_servicios.filter(
+            titulo__icontains=query
+        )
+
+    # Mostrar 5 servicios por página
+    paginator = Paginator(lista_servicios, 5)
+
+    # Obtener el número de página
+    numero_pagina = request.GET.get('page')
+    pagina = paginator.get_page(numero_pagina)
+
+    # Enviar los servicios a la plantilla
+    return render(request, 'core/servicios.html', {
+        'servicios': pagina,
+        'query': query
+    })
+
 
 
 # Exige iniciar sesión para crear servicios

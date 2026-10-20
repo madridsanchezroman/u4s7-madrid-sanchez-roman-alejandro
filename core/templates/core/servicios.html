@@ -1,22 +1,40 @@
 
 {% extends 'core/base.html' %}
 
-{# Contenido principal del listado #}
 {% block contenido %}
 
-    {# Titulo de la pagina #}
-    <h1 class="text-2xl font-bold mb-6">Servicios</h1>
+<h1 class="text-2xl font-bold mb-6">Servicios</h1>
 
-    {# Enlace para registrar un nuevo servicio #}
-    <a href="{% url 'crear_servicio' %}"
-       class="inline-block mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg">
-        + Nuevo servicio
+<a href="{% url 'crear_servicio' %}"
+   class="inline-block mb-4 bg-blue-600 text-white px-4 py-2 rounded-lg">
+    + Nuevo servicio
+</a>
+
+<!-- Buscador de servicios -->
+<form method="GET" class="mb-4 flex flex-wrap gap-2 items-center">
+    <input type="text"
+           name="q"
+           value="{{ query }}"
+           placeholder="Buscar por título..."
+           aria-label="Buscar servicios por título"
+           class="max-w-xs">
+
+    <button type="submit"
+            class="bg-slate-700 text-white px-3 py-2 rounded-lg">
+        Buscar
+    </button>
+
+    {% if query %}
+    <a href="{% url 'servicios' %}" class="text-slate-600 underline">
+        Quitar búsqueda
     </a>
+    {% endif %}
+</form>
 
-    {# Tabla donde aparecen los servicios de MySQL #}
+<!-- Tabla de servicios -->
+<div class="overflow-x-auto">
     <table class="w-full border border-slate-200 rounded-lg overflow-hidden">
 
-        {# Encabezados de la tabla #}
         <thead class="bg-slate-100">
             <tr>
                 <th class="text-left px-4 py-2">Servicio</th>
@@ -25,27 +43,12 @@
             </tr>
         </thead>
 
-        {# Cuerpo de la tabla #}
         <tbody>
-
-            {# Recorre los servicios guardados en MySQL #}
             {% for servicio in servicios %}
-
             <tr class="border-t border-slate-200">
-
-                {# Nombre del servicio #}
-                <td class="px-4 py-2">
-                    {{ servicio.titulo }}
-                </td>
-
-                {# Precio del servicio #}
-                <td class="px-4 py-2">
-                    ${{ servicio.precio }}
-                </td>
-
-                {# Enlaces para editar y eliminar #}
-                <td class="px-4 py-2">
-
+                <td class="px-4 py-2">{{ servicio.titulo }}</td>
+                <td class="px-4 py-2">${{ servicio.precio }}</td>
+                <td class="px-4 py-2 whitespace-nowrap">
                     <a href="{% url 'editar_servicio' servicio.pk %}"
                        class="text-blue-600 underline">
                         Editar
@@ -55,23 +58,47 @@
                        class="text-red-600 underline ml-3">
                         Eliminar
                     </a>
-
                 </td>
             </tr>
 
-            {# Si no existen servicios registrados #}
             {% empty %}
-
             <tr>
-                <td colspan="3"
-                    class="px-4 py-6 text-center text-slate-500">
-                    Todavía no hay servicios.
+                <td colspan="3" class="text-center text-slate-500 py-6">
+                    {% if query %}
+                        No hay servicios que coincidan con "{{ query }}".
+                    {% else %}
+                        Aún no tienes servicios. ¡Crea el primero!
+                    {% endif %}
                 </td>
             </tr>
-
             {% endfor %}
-
         </tbody>
     </table>
+</div>
+
+<!-- Paginación -->
+{% if servicios.paginator.num_pages > 1 %}
+<nav class="mt-4 flex items-center gap-2" aria-label="Paginación">
+
+    {% if servicios.has_previous %}
+    <a href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ servicios.previous_page_number }}"
+       class="text-blue-600 underline px-2 py-2">
+        ← Anterior
+    </a>
+    {% endif %}
+
+    <span class="text-slate-500">
+        Página {{ servicios.number }} de {{ servicios.paginator.num_pages }}
+    </span>
+
+    {% if servicios.has_next %}
+    <a href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ servicios.next_page_number }}"
+       class="text-blue-600 underline px-2 py-2">
+        Siguiente →
+    </a>
+    {% endif %}
+
+</nav>
+{% endif %}
 
 {% endblock %}
