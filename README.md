@@ -86,4 +86,83 @@ miproyecto-django_MSRA/
 │   │       ├── servicios.html
 │   │       ├── servicio_form.html
 │   │       └── servicio_confirm_delete.html
-│   ├
+│   ├── admin.py
+│   ├── forms.py
+│   ├── models.py
+│   ├── urls.py
+│   └── views.py
+├── miproyecto_MSRA/
+│   ├── settings.py
+│   ├── urls.py
+│   └── wsgi.py
+├── manage.py
+└── README.md
+```
+
+## Ejecución local
+
+Activar el entorno virtual en Windows:
+
+```powershell
+.\env\Scripts\Activate.ps1
+```
+
+Instalar las dependencias del proyecto:
+
+```powershell
+pip install -r requirements.txt
+```
+
+Configurar las variables de entorno necesarias para MySQL y Django.
+
+Comprobar la configuración:
+
+```powershell
+python manage.py check
+```
+
+Iniciar el servidor:
+
+```powershell
+python manage.py runserver
+```
+
+Abrir en el navegador:
+
+http://127.0.0.1:8000/
+
+## Pruebas realizadas
+
+Durante la Semana 7 se realizaron las siguientes pruebas:
+
+- Conexión con MySQL de Aiven.
+- Funcionamiento del servidor Django.
+- Registro y consulta de servicios.
+- Edición y eliminación de servicios.
+- Búsqueda por título.
+- Búsqueda sin resultados.
+- Paginación de cinco registros.
+- Navegación entre páginas.
+- Visualización en pantalla móvil de 375 px.
+- Navegación mediante teclado.
+
+Las pruebas locales permitieron comprobar el funcionamiento de las principales operaciones del sistema.
+
+## Repositorio GitHub
+
+[Unidad 4 Semana 7 - Madrid Sánchez Román Alejandro](https://github.com/madridsanchezroman/u4s7-madrid-sanchez-roman-alejandro)
+
+## Conclusión
+
+En esta práctica se mejoró el funcionamiento y la presentación del sistema de gestión de servicios desarrollado con Django.
+
+La búsqueda y paginación permiten encontrar y consultar la información de manera más sencilla, mientras que los ajustes de interfaz hacen que la aplicación sea más cómoda de utilizar en diferentes dispositivos.
+
+También se realizaron pruebas para comprobar el funcionamiento del CRUD, la autenticación y la conexión con la base de datos MySQL de Aiven.
+
+Con estas mejoras, el sistema queda preparado para continuar con la etapa final de presentación y despliegue.
+
+---
+
+**Madrid Sánchez Román Alejandro**  
+**Unidad 4 - Semana 7**
